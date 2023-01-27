@@ -1,0 +1,30 @@
+.login{
+}
+
+.lContainer{
+    margin-top: 200px;
+    margin-left: 700px;
+}
+
+.lInput{
+    display: block;
+    height: 30px;
+    padding: 10px;
+}
+
+.lButton{
+    display: block;
+    border: none;
+    padding: 10px 20px;
+    background-color: #0071c2;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 5px;
+    align-items: center;
+}
+
+.lButton:disabled{
+    background-color: #0071c28c;
+    cursor: not-allowed;
+}
