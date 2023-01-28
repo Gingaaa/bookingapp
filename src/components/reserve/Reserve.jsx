@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import axios from "axios";
 import { useContext } from "react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { SearchContext } from "../../context/SearchContext";
 import useFetch from "../../hooks/useFetch";
 import "./reserve.css";
@@ -16,17 +17,19 @@ const Reserve = ({ setOpen, hotelId }) => {
     const start = new Date(startDate);
     const end = new Date(endDate);
     const date = new Date(start.getTime());
-    const dates = [];
-    while (data <= end) {
-      dates.push(new Date(date).getTime());
+
+    let list = [];
+
+    while (date <= end) {
+      list.push(new Date(date).getTime());
       date.setDate(date.getDate() + 1);
     }
-    return dates;
+    return list;
   };
   const alldates = getDatesInRange(dates[0]?.startDate, dates[0]?.endDate);
 
   const isAvailable = (roomNumber) => {
-    const isFound = roomNumber.unavilableDates?.some((date) =>
+    const isFound = roomNumber.unavailableDates.some((date) =>
       alldates.includes(new Date(date).getTime())
     );
     return !isFound;
@@ -42,15 +45,21 @@ const Reserve = ({ setOpen, hotelId }) => {
     );
   };
 
+  const navigate = useNavigate();
+
   const handleClick = async () => {
     try {
-      await Promise.all(selectedRooms.map((roomId) => {
-        const res = axios.put(`/rooms/availability/${roomId}`, {dates: alldates});
-        return res.data;
-      }));
-    } catch (err) {
-      console.log(err);
-    }
+      await Promise.all(
+        selectedRooms.map((roomId) => {
+          const res = axios.put(`/rooms/availability/${roomId}`, {
+            dates: alldates,
+          });
+          return res.data;
+        })
+      );
+      setOpen(false);
+      navigate("/");
+    } catch (err) {}
   };
 
   return (
@@ -62,32 +71,32 @@ const Reserve = ({ setOpen, hotelId }) => {
           onClick={() => setOpen(false)}
         />
         <span>Select your rooms:</span>
-        {data.map((item) => (
-          <div className="rItem">
-            <div className="rItem info">
-              <div className="rTitle">{item?.title}</div>
-              <div className="rDesc">{item?.desc}</div>
+        {data.map((item, id) => (
+          <div className="rItem" key={id}>
+            <div className="rItemInfo">
+              <div className="rTitle">{item.title}</div>
+              <div className="rDesc">{item.desc}</div>
               <div className="rMax">
-                Max people : <b>{item?.maxPeople}</b>
+                Max people: <b>{item.maxPeople}</b>
               </div>
-              <div className="rPrice">{item?.price}</div>
+              <div className="rPrice">{item.price}</div>
             </div>
             <div className="rSelectRooms">
-            {item?.roomNumbers.map((roomNumber) => (
-              <div className="room">
-                <label>{roomNumber?.number}</label>
-                <input
-                  type="checkbox"
-                  value={roomNumber._id}
-                  onChange={handleSelect}
-                  disabled={!isAvailable(roomNumber)}
+              {item.roomNumbers.map((roomNumber, room) => (
+                <div className="room" key={room}>
+                  <label>{roomNumber.number}</label>
+                  <input
+                    type="checkbox"
+                    value={roomNumber._id}
+                    onChange={handleSelect}
+                    disabled={!isAvailable(roomNumber)}
                   />
-              </div>
-            ))}
+                </div>
+              ))}
             </div>
           </div>
         ))}
-        <button className="rButton" onClick={handleClick}>
+        <button onClick={handleClick} className="rButton">
           Reserve Now!
         </button>
       </div>
